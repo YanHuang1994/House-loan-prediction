@@ -1,1 +1,1 @@
-# House-loan-pridiction
+# House-loan-prediction
