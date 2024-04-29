@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>House Loan Prediction Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>House Loan Prediction Tool</h1>
+        <button onclick="loadTestData()">Load Test Data</button>
+		
+		<p id="rowTestData">The number of rows in the test set
+: </p>
+        <p id="colTestData">The number of cols in the test set
+: </p>
+		
+        <button onclick="loadModel()">Load Model</button>
+        <button onclick="showResults()">Show Results</button>
+		<p id="accuracyResult">Accuracy: </p>  <!-- 新增加的段落用于显示准确率 -->
+		<p id="precisionResult">Precision: </p>
+		<p id="recallResult">Recall: </p>
+		<p id="f1ScoreResult">F1 Score: </p>
+        <button onclick="downloadData('xtest')">Download X_test</button>
+        <button onclick="downloadData('ytest')">Download Y_test</button>
+    </div>
+    <script>
+        // 示例测试数据和标签
+        var testData = [{
+		purchaser_type: 0,
+		preapproval: 2,
+		loan_type: 1,
+		loan_purpose: 1,
+		lien_status: 1,
+		business_or_commercial_purpose: 2,
+		loan_amount: 295000,
+		combined_loan_to_value_ratio: 99.5,
+		interest_rate: 4.78284368513491,
+		hoepa_status: 3,
+		loan_term: 360,
+		negative_amortization: 2,
+		balloon_payment: 2,
+		property_value: 305000,
+		occupancy_type: 1,
+		income: 1.58756448332165,
+		debt_to_income_ratio: 65,
+		applicant_credit_score_type: 1,
+		co_applicant_credit_score_type: 1,
+		applicant_race_1: 3,
+		applicant_sex: 1,
+		applicant_age: 44,
+		ffiec_msa_md_median_family_income: 110110,
+		tract_owner_occupied_units: 1077,
+		tract_one_to_four_family_homes: 1334,
+		has_coapplicant: 1,
+		state_AL: 0,
+		state_AR: 0,
+		state_AZ: 0,
+		state_CA: 0,
+		state_CO: 0,
+		state_CT: 0,
+		state_DC: 0,
+		state_DE: 0,
+		state_FL: 0,
+		state_GA: 0,
+		state_GU: 0,
+		state_HI: 0,
+		state_IA: 0,
+		state_ID: 0,
+		state_IL: 0,
+		state_IN: 0,
+		state_KS: 0,
+		state_KY: 0,
+		state_LA: 0,
+		state_MA: 0,
+		state_MD: 0,
+		state_ME: 0,
+		state_MI: 0,
+		state_MN: 0,
+		state_MO: 0,
+		state_MS: 0,
+		state_MT: 0,
+		state_NC: 1,
+		state_ND: 0,
+		state_NE: 0,
+		state_NH: 0,
+		state_NJ: 0,
+		state_NM: 0,
+		state_NV: 0,
+		state_NY: 0,
+		state_OH: 0,
+		state_OK: 0,
+		state_OR: 0,
+		state_PA: 0,
+		state_PR: 0,
+		state_RI: 0,
+		state_SC: 0,
+		state_SD: 0,
+		state_TN: 0,
+		state_TX: 0,
+		state_UT: 0,
+		state_VA: 0,
+		state_VT: 0,
+		state_WA: 0,
+		state_WI: 0,
+		state_WV: 0,
+		state_WY: 0
+	}];
+
+        var testLabels = [1]; // 假设标签
+		
+		function loadTestData() {
+			fetch('/loadtestdata')
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Failed to load test data');
+					}
+					return response.json();
+				})
+				.then(data => {
+					alert(data.message);
+					if (data.rows !== undefined && data.columns !== undefined) {
+						displayDatasetInfo(data.rows, data.columns);
+					} else {
+						throw new Error('Rows or columns data not available');
+					}
+				})
+				.catch(error => {
+					console.error('Error loading test data:', error);
+					alert('Error loading test data: ' + error.message);
+				});
+		}
+
+		function displayDatasetInfo(rows, columns) {
+			const rowElement = document.getElementById('rowTestData');
+			const colElement = document.getElementById('colTestData');
+			if (rowElement && colElement) {
+				rowElement.textContent = `The number of rows in the test set: ${rows}`;
+				colElement.textContent = `The number of columns in the test set: ${columns}`;
+			} else {
+				console.error('Error: One or both elements not found');
+			}
+		}
+
+        function loadModel() {
+            fetch('/loadmodel')
+                .then(response => response.json())
+                .then(data => alert(data.message));
+        }
+
+        function showResults() {
+			console.log("Attempting to show results");
+			fetch('/results', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					X_test: testData,
+					Y_test: testLabels
+				})
+			}).then(response => {
+				if (!response.ok) {
+					throw new Error('Server responded with a non-OK status');
+				}
+				return response.json();
+			}).then(data => {
+				console.log("Data received:", data);
+				document.getElementById('accuracyResult').textContent = 'Accuracy: ' + data.accuracy.toFixed(15);
+				document.getElementById('precisionResult').textContent = 'Precision: ' + data.precision.toFixed(15);
+				document.getElementById('recallResult').textContent = 'Recall: ' + data.recall.toFixed(15);
+				document.getElementById('f1ScoreResult').textContent = 'F1 Score: ' + data.f1_score.toFixed(15);
+			}).catch(error => {
+				console.error("Error processing response:", error);
+			});
+		}
+
+        function downloadData(fileType) {
+            window.location.href = `/downloaddata?type=${fileType}`;
+        }
+    </script>
+</body>
+</html>
